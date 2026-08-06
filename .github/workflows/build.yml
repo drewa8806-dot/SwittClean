@@ -17,11 +17,20 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Change wrapper permissions
+      run: chmod +x ./gradlew || true
+
     - name: Build with Gradle
-      run: gradle assembleDebug
+      run: |
+        if [ -d "SwiftCleanPro" ]; then
+          cd SwiftCleanPro && gradle assembleDebug
+        else
+          gradle assembleDebug
+        fi
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: SwiftCleanPro-APK
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: |
+          **/build/outputs/apk/debug/*.apk
