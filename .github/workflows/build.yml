@@ -1,4 +1,4 @@
-name: Build Android Native APK
+name: Build Android APK Auto-Detect
 
 on:
   push:
@@ -17,20 +17,25 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Change wrapper permissions
-      run: chmod +x ./gradlew || true
-
-    - name: Build with Gradle
+    - name: Auto-Detect and Build APK
       run: |
-        if [ -d "SwiftCleanPro" ]; then
-          cd SwiftCleanPro && gradle assembleDebug
-        else
-          gradle assembleDebug
+        echo "Searching for Android Gradle files..."
+        GRADLE_FILE=$(find . -name "build.gradle*" | head -n 1)
+        
+        if [ -z "$GRADLE_FILE" ]; then
+          echo "❌ الكود الحالي لا يحتوي على ملفات أندرويد (Gradle). يبدو أن هذا مشروع ويب (Web App)."
+          exit 1
         fi
+        
+        GRADLE_DIR=$(dirname "$GRADLE_FILE")
+        echo "✅ تم العثور على ملفات الأندرويد في المسار: $GRADLE_DIR"
+        cd "$GRADLE_DIR"
+        
+        chmod +x ./gradlew || true
+        ./gradlew assembleDebug || gradle assembleDebug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: SwiftCleanPro-APK
-        path: |
-          **/build/outputs/apk/debug/*.apk
+        name: SwiftClean-APK
+        path: '**/*.apk'
